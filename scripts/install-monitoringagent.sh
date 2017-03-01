@@ -129,4 +129,3 @@ exit_on_error "${NOTIFICATION_MESSAGE} failed!" 1 "${MAIL_SUBJECT}" "${CLUSTER_A
 # at this point, the installation has suceeded
 log "${NOTIFICATION_MESSAGE} completed successfully."
 send_notification "${NOTIFICATION_MESSAGE}" "${MAIL_SUBJECT}" "${CLUSTER_ADMIN_EMAIL}"
-exit 0
