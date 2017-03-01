@@ -395,6 +395,12 @@ send_notification()
     MESSAGE=$1; SUBJECT=$2; TO=$3; 
     MAIN_LOGFILE=$4; SECONDARY_LOGFILE=$5
     
+    # if for some reason, mail isn't already installed, just go quietly
+    if ! type "mail" > /dev/null 2>&1; then
+        log "Mail not installed"
+        exit 0;
+    fi
+
     if [ "$#" -ge 3 ]; 
     then
         # we have sufficient inputs to send mail
@@ -672,7 +678,7 @@ setup_backup()
     backup_script="${2}";                                   # Backup script (actually take the backup)
     backup_log="${3}";                                      # Log file for backup job
 
-    account_name="${4}" account_key="${5}";                 # Storage Account 
+    account_name="${4}"; account_key="${5}";                 # Storage Account 
     backupFrequency="${6}";                                 # Backup Frequency
     backupRententionDays="${7}";                            # Backup Retention
     mongoReplicaSetConnectionString="${8}";                 # Mongo replica set connection string
