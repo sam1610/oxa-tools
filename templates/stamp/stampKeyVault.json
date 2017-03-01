@@ -489,6 +489,34 @@
             "metadata": {
                 "description": "Email address of the administrator where system and other notifications will be sent"
             }
+        },
+        "mongoBackupFrequency": {
+            "type": "string",
+            "defaultValue": "0 0 * * * *",
+            "metadata": {
+                "description": "Cron tab frequency for running a full backup of the mongo database. The expected format is parameter|value as supported by Ansible. See http://docs.ansible.com/ansible/cron_module.html for details"
+            }
+        },
+        "mysqlBackupFrequency": {
+            "type": "string",
+            "defaultValue": "0 */4 * * * *",
+            "metadata": {
+                "description": "Cron tab frequency for running a full backup of the mysql database. The expected format is parameter|value as supported by Ansible. See http://docs.ansible.com/ansible/cron_module.html for details"
+            }
+        },
+        "mongoBackupRetentionDays": {
+            "type": "int",
+            "defaultValue": 30,
+            "metadata": {
+                "description": "Number of days to keep old Mongo database backups. Backups older than this number of days will be deleted."
+            }
+        },
+        "mysqlBackupRetentionDays": {
+            "type": "int",
+            "defaultValue": 30,
+            "metadata": {
+                "description": "Number of days to keep old Mysql backups. Backups older than this number of days will be deleted."
+            }
         }
     },
     "variables": {
