@@ -57,7 +57,7 @@
     },
 
     "variables": {
-        "monitoringExtensionName": "[concat('install_', parameters('agentType'), '_agent')]",
+        "monitoringExtensionName": "[concat('install', parameters('agentType'), 'agent')]",
         "vmssName": "[concat(parameters('clusterName'), '-vmss-', parameters('deploymentVersionId'))]",
 
         "clusterJumpBoxName": "[concat(parameters('clusterName'), '-jb')]",
@@ -69,12 +69,12 @@
         "computeApiVersion": "2016-03-30",
         "virtualMachineExtensionsApiVersion": "[variables('defaultApiVersion')]",
 
-        "templateBaseUrl": "[concat('https://raw.githubusercontent.com/',parameters('oxaToolsGithubAccountName'), '/', parameters('oxaToolsGithubProjectName'), '/', parameters('oxaToolsGithubBranch'))]",
+        "templateBaseUrl": "[concat('https://raw.githubusercontent.com/',parameters('oxaToolsGithubAccountName'), '/', parameters('oxaToolsGithubProjectName'), '/', parameters('oxaToolsGithubBranch'), '/')]",
         "agentInstallerScript": "install-monitoringagent.sh",
-        "relativeAgentInstallerScriptPath": "[concat('scripts/', variables('agentInstallerScript')",
+        "relativeAgentInstallerScriptPath": "[concat('scripts/', variables('agentInstallerScript'))]",
         "relativeUtilitiesScriptPath": "templates/stamp/utilities.sh",
 
-        "agentInstallerCommand": "[concat('bash ', variables('agentInstallerScript'),' --cluster-admin-email ', parameters('clusterAdmininistratorEmailAddress'), ' --agent-type ', parameters('agentType'), ' --primary-key ', parameters('primaryKey'), ' --oms-workspaceid ', parameters('omsWorkspaceId'))]",
+        "agentInstallerCommand": "[concat('bash ', variables('agentInstallerScript'),' --cluster-admin-email ', parameters('clusterAdmininistratorEmailAddress'), ' --agent-type ', parameters('agentType'), ' --primary-key ', parameters('primaryKey'), ' --oms-workspaceid ', parameters('omsWorkspaceId'), '  >> /var/log/bootstrap.csx.log 2>&1')]",
 
         "monitoringAgentInstallerFiles": {
             "scriptsToDownload": [
@@ -89,12 +89,9 @@
         {
             "comments": "Monitoring agent installer for Jumpbox.",
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('clusterJumpBoxName'), variables('monitoringExtensionName'))]",
+            "name": "[concat(variables('clusterJumpBoxName'),'/', variables('monitoringExtensionName'))]",
             "apiVersion": "[variables('virtualMachineExtensionsApiVersion')]",
             "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Compute/virtualMachines', variables('clusterJumpBoxName'))]"
-            ],
             "properties": {
                 "publisher": "Microsoft.Azure.Extensions",
                 "type": "CustomScript",
@@ -111,12 +108,9 @@
         {
             "comments": "Monitoring agent installer for Mongo DBs.",
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('clusterMongoDataNodeName'), copyindex(1), variables('monitoringExtensionName'))]",
+            "name": "[concat(variables('clusterMongoDataNodeName'), copyindex(1), '/', variables('monitoringExtensionName'))]",
             "apiVersion": "[variables('virtualMachineExtensionsApiVersion')]",
             "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Compute/virtualMachines', concat(variables('clusterMongoDataNodeName'), copyindex(1)))]"
-            ],
             "copy": {
                 "name": "mongoNodesLoop",
                 "count": 3
@@ -137,12 +131,9 @@
         {
             "comments": "Monitoring agent installer for Mysql DBs.",
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('clusterMysqlDataNodeName'), copyindex(1), variables('monitoringExtensionName'))]",
+            "name": "[concat(variables('clusterMysqlDataNodeName'), copyindex(1), '/', variables('monitoringExtensionName'))]",
             "apiVersion": "[variables('virtualMachineExtensionsApiVersion')]",
             "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Compute/virtualMachines', concat(variables('clusterMysqlDataNodeName'), copyindex(1)))]"
-            ],
             "copy": {
                 "name": "mysqlNodesLoop",
                 "count": 3
