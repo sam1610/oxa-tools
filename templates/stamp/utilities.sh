@@ -376,6 +376,12 @@ send_notification()
     MESSAGE=$1; SUBJECT=$2; TO=$3; 
     MAIN_LOGFILE=$4; SECONDARY_LOGFILE=$5
     
+    # if for some reason, mail isn't already installed, just go quietly
+    if type git >/dev/null 2>&1; then
+        log "Mail not installed"
+        exit 0;
+    fi
+
     if [ "$#" -ge 3 ]; 
     then
         # we have sufficient inputs to send mail
