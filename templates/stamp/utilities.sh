@@ -377,7 +377,7 @@ send_notification()
     MAIN_LOGFILE=$4; SECONDARY_LOGFILE=$5
     
     # if for some reason, mail isn't already installed, just go quietly
-    if type git >/dev/null 2>&1; then
+    if type mail >/dev/null 2>&1; then
         log "Mail not installed"
         exit 0;
     fi
