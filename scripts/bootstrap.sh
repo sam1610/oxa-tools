@@ -65,32 +65,6 @@ display_usage() {
   exit 1
 }
 
-is_valid_arg() {
-  local list="$1"
-  local arg="$2"
-
-  if [[ $list =~ (^|[[:space:]])"$arg"($|[[:space:]]) ]] ; then
-    result=0
-  else
-    result=1
-  fi
-
-  return $result
-}
-
-is_valid_arg() {
-  local list="$1"
-  local arg="$2"
-
-  if [[ $list =~ (^|[[:space:]])"$arg"($|[[:space:]]) ]] ; then
-    result=0
-  else
-    result=1
-  fi
-
-  return $result
-}
-
 parse_args() {
   while [[ "$#" -gt 0 ]]
   do
