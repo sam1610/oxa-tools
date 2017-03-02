@@ -561,9 +561,150 @@
             "tenantSecretAccessPermission": "[parameters('keyVaultMasterAccountSecretAccessPermission')]",
             "sku": "[parameters('keyVaultSku')]"
         },
+
         "networkSettings": {
-            "clusterKeyVaultName": "[concat(parameters('clusterName'), '-kv')]"
+            "virtualNetworkName": "[variables('virtualNetworkName')]",
+            "clusterName": "[parameters('clusterName')]",
+            "networkInterfaceNameSuffix": "-nic",
+            "publicIPAddressNameSuffix": "-ip",
+            "osDiskSuffix": "-osDisk",
+            "availabilitySetNameSuffix": "-as",
+            "ipConfigSuffix": "-ipconfig",
+            "adminUsername": "[parameters('adminUsername')]",
+            "adminPublicKey": "[parameters('adminPublicKey')]",
+            "mongoServerAdminPassword": "[parameters('mongoServerAdminPassword')]",
+            "publicIpAddressType": "Dynamic",
+            "subnetName": "[variables('subnetName')]",
+            "subnetRef": "[concat(variables('vnetID'), '/subnets/', variables('subnetName'))]",
+            "subnetPrefix": "10.0.0.0/24",
+            "addressPrefix": "10.0.0.0/16",
+            "serverIpPrefix": "10.0.0.",
+            "mongoServerIpOffset": 10,
+            "mysqlServerIpOffset": 15,
+            "jbNetworkSecurityGroupName": "[concat(parameters('clusterName'),'-jb-', 'nsg')]",
+            "vmssNetworkSecurityGroupName": "[concat(parameters('clusterName'), '-vmss-', 'nsg')]",
+            "mongoNetworkSecurityGroupName": "[concat(parameters('clusterName'), '-mongo-', 'nsg')]",
+            "mysqlNetworkSecurityGroupName": "[concat(parameters('clusterName'), '-mysql-', 'nsg')]",
+            "clusterKeyVaultName": "[concat(parameters('clusterName'), '-kv')]",
+            "clusterJumpBoxName": "[concat(parameters('clusterName'), '-jb')]",
+            "clusterJumpBoxDomainName": "[concat(parameters('clusterName'), 'jb')]",
+            "clusterMongoDataNodeName": "[concat(parameters('clusterName'), '-mongo')]",
+            "clusterMongoDataNodeDomainName": "[concat(parameters('clusterName'), 'mongo')]",
+            "clusterMysqlDataNodeName": "[concat(parameters('clusterName'), '-mysql')]",
+            "clusterMysqlDataNodeDomainName": "[concat(parameters('clusterName'), 'mysql')]",
+            "clusterVirtualMachineScaleSetName": "[variables('vmssName')]",
+            "clusterVirtualMachineScaleSetDomainName": "[concat(parameters('clusterName'), 'vmss')]",
+            "clusterVirtualMachineScaleSetSettingsName": "[variables('vmssAutoScaleSettingsName')]",
+            "jumpBoxAvailabilitySetFaultDomainCount": "1",
+            "jumpBoxNodeCount": "1",
+            "mongoDataNodesAvailabilitySetFaultDomainCount": "3",
+            "mongoDataNodeCount": 3,
+            "mysqlDataNodesAvailabilitySetFaultDomainCount": "3",
+            "mysqlDataNodeCount": 3,
+
+            "trafficManagerSettings": {
+                "dnsTtlSeconds": 30,
+                "monitorConfigProtocol": "https",
+
+                "lms": {
+                    "name": "[concat('lms-', parameters('clusterName'), '-tm')]",
+                    "monitorConfigPort": 443,
+                    "monitorConfigPath": "/",
+                    "endpoint1": {
+                        "target": "[concat('lms-', parameters('clusterName'), '-slot1.',resourceGroup().location, '.cloudapp.azure.com')]",
+                        "status": "[parameters('lmsTrafficManagerStateMetadata')[0]]",
+                        "location": "[resourceGroup().location]",
+                        "priority": "[parameters('lmsTrafficManagerStateMetadata')[2]]"
+                    },
+                    "endpoint2": {
+                        "target": "[concat('lms-', parameters('clusterName'), '-slot2.',resourceGroup().location, '.cloudapp.azure.com')]",
+                        "status": "[parameters('lmsTrafficManagerStateMetadata')[1]]",
+                        "location": "[resourceGroup().location]",
+                        "priority": "[parameters('lmsTrafficManagerStateMetadata')[3]]"
+                    }
+                },
+
+                "cms": {
+                    "name": "[concat('cms-', parameters('clusterName'), '-tm')]",
+                    "monitorConfigPort": 443,
+                    "monitorConfigPath": "/",
+                    "endpoint1": {
+                        "target": "[concat('cms-', parameters('clusterName'), '-slot1.',resourceGroup().location, '.cloudapp.azure.com')]",
+                        "status": "[parameters('cmsTrafficManagerStateMetadata')[0]]",
+                        "location": "[resourceGroup().location]",
+                        "priority": "[parameters('cmsTrafficManagerStateMetadata')[2]]"
+                    },
+                    "endpoint2": {
+                        "target": "[concat('cms-', parameters('clusterName'), '-slot2.',resourceGroup().location, '.cloudapp.azure.com')]",
+                        "status": "[parameters('cmsTrafficManagerStateMetadata')[1]]",
+                        "location": "[resourceGroup().location]",
+                        "priority": "[parameters('cmsTrafficManagerStateMetadata')[3]]"
+                    }
+                },
+
+                "preview": {
+                    "name": "[concat('preview-', parameters('clusterName'), '-tm')]",
+                    "monitorConfigPort": 443,
+                    "monitorConfigPath": "/",
+                    "endpoint1": {
+                        "target": "[concat('preview-', parameters('clusterName'), '-slot1.',resourceGroup().location, '.cloudapp.azure.com')]",
+                        "status": "[parameters('previewTrafficManagerStateMetadata')[0]]",
+                        "location": "[resourceGroup().location]",
+                        "priority": "[parameters('previewTrafficManagerStateMetadata')[2]]"
+                    },
+                    "endpoint2": {
+                        "target": "[concat('preview-', parameters('clusterName'), '-slot2.',resourceGroup().location, '.cloudapp.azure.com')]",
+                        "status": "[parameters('previewTrafficManagerStateMetadata')[1]]",
+                        "location": "[resourceGroup().location]",
+                        "priority": "[parameters('previewTrafficManagerStateMetadata')[3]]"
+                    }
+                }
+            },
+
+            "loadbalancerSettings": {
+                "deploymentSlot": "[parameters('deploymentSlot')]",
+                "loadBalancerName": "[variables('loadBalancerName')]",
+                "cmsLoadBalancerDomainName": "[concat('cms-', parameters('clusterNameDomainName'), '-', parameters('deploymentSlot'))]",
+                "lmsLoadBalancerDomainName": "[concat('lms-', parameters('clusterNameDomainName'), '-', parameters('deploymentSlot'))]",
+                "previewLoadBalancerDomainName": "[concat('preview-', parameters('clusterNameDomainName'), '-', parameters('deploymentSlot'))]",
+                "natPoolName": "[concat(parameters('clusterName'), '-natpool')]",
+
+                "cmsPublicAddressName": "[variables('cmsPublicAddressName')]",
+                "lmsPublicAddressName": "[variables('lmsPublicAddressName')]",
+                "previewPublicAddressName": "[variables('previewPublicAddressName')]",
+
+                "cmsIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/', variables('cmsPublicAddressName'))]",
+                "lmsIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/', variables('lmsPublicAddressName'))]",
+                "previewIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/', variables('previewPublicAddressName'))]",
+
+                "frontEndIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/loadBalancerFrontEnd')]",
+                "lbPoolID": "[concat(variables('lbID'),'/backendAddressPools/', variables('bePoolName'))]",
+                "bePoolName": "[variables('bePoolName')]",
+
+                "lbProbeLMSName": "[variables('lbProbeLMSName')]",
+                "lbProbeCMSName": "[variables('lbProbeCMSName')]",
+                "lbProbePreviewName": "[variables('lbProbePreviewName')]",
+                "lbProbeLMSSSLName": "[variables('lbProbeLMSSSLName')]",
+                "lbProbeCMSSSLName": "[variables('lbProbeCMSSSLName')]",
+                "lbProbePreviewSSLName": "[variables('lbProbePreviewSSLName')]",
+
+                "lbProbeLMSID": "[concat(variables('lbID'),'/probes/', variables('lbProbeLMSName'))]",
+                "lbProbeCMSID": "[concat(variables('lbID'),'/probes/', variables('lbProbeCMSName'))]",
+                "lbProbePreviewID": "[concat(variables('lbID'),'/probes/', variables('lbProbePreviewName'))]",
+                "lbProbeLMSSSLID": "[concat(variables('lbID'),'/probes/', variables('lbProbeLMSSSLName'))]",
+                "lbProbeCMSSSLID": "[concat(variables('lbID'),'/probes/', variables('lbProbeCMSSSLName'))]",
+                "lbProbePreviewSSLID": "[concat(variables('lbID'),'/probes/', variables('lbProbePreviewSSLName'))]",
+
+                "natStartPort": 50000,
+                "natEndPort": 50119,
+                "natBackendPort": 22,
+                "AutoscaleEnabled": "[parameters('autoScaleEnabled')]",
+                "AutoscaleCapacityDefault": "[parameters('autoScaleCapacityDefault')]",
+                "AutoscaleCapacityMaximum": "[parameters('autoScaleCapacityMaximum')]",
+                "AutoscaleCapacityMinimum": "[parameters('autoScaleCapacityMinimum')]"
+            }
         },
+
         "sharedTemplateUrl": "[concat(variables('templateBaseUrl'), 'shared-resources.json')]",
 
         "diagnosticStorageAccountName": "[concat(toLower(parameters('clusterName')), 'diagnostics')]",
