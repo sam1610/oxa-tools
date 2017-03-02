@@ -761,7 +761,7 @@ DATABASE_USER={DATABASE_USER}
 DATABASE_PASSWORD={DATABASE_PASSWORD}
 TEMP_DATABASE_USER={TEMP_DATABASE_USER}
 TEMP_DATABASE_PASSWORD={TEMP_DATABASE_PASSWORD}
-DATABASE_TYPE={databaseType}
+DATABASE_TYPE={DATABASE_TYPE}
 EOF
 
     # replace the place holders (using # since the repo path will have forward slashes)
@@ -782,7 +782,8 @@ EOF
 
     # create the cron job
     cron_installer_script="${backup_script}.${databaseType}"
-    install_command="sudo bash ${backup_script} ${backup_configuration} >> $backup_log 2>&1"
+    lock_file="${backup_script}.lock"
+    install_command="sudo flock -n ${lock_file} bash ${backup_script} -s ${backup_configuration} >> ${backup_log} 2>&1"
     echo $install_command > $cron_installer_script
 
     # secure the file and make it executable
