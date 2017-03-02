@@ -260,7 +260,7 @@ parse_args()
               --mongo-backup-retention-days)
                 MONGO_BACKUP_RETENTIONDAYS="$2"
                 ;;
-              )
+              --mysql-backup-retention-days)
                 MYSQL_BACKUP_RETENTIONDAYS="$2"
                 ;;
             -h|--help)  # Helpful hints
