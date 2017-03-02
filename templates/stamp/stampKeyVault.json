@@ -522,6 +522,7 @@
     "variables": {
         "defaultApiVersion": "2015-05-01-preview",
         "apiVersion": "2016-09-01",
+        "availabilitySetApiVersion": "2015-06-15",
         "networkApiVersion": "2016-03-30",
         "computeApiVersion": "2016-03-30",
         "insightsApiVersion": "2015-04-01",
@@ -529,38 +530,44 @@
         "trafficManagerApiversion": "2015-11-01",
         "mediaServicesApiVersion": "2015-10-01",
         "storageApiVersion": "2016-01-01",
+
         "virtualMachineExtensionsApiVersion": "[variables('defaultApiVersion')]",
         "virtualMachineApiVersion": "[variables('defaultApiVersion')]",
 
-        "templateBaseUrl": "[concat('https://raw.githubusercontent.com/',parameters('oxaToolsGithubAccountName'), '/', parameters('oxaToolsGithubProjectName'), '/', parameters('oxaToolsGithubBranch'), '/', parameters('armTemplateRelativePath'), '/')]",
-        "keyvaultTemplateUrl": "[concat(variables('templateBaseUrl'), 'node-keyvault.json')]",
+        "diagnosticStorageAccountName": "[concat(toLower(parameters('clusterName')), 'diagnostics')]",
+        "storageAccountName": "[concat(toLower(parameters('clusterName')), 'vhdsa')]",
+        "secureGenericStorageAccountName": "[concat(toLower(parameters('clusterName')), 'securesa')]",
+        "videoUploadsStorageAccountName": "[concat(toLower(parameters('clusterName')), 'videosa')]",
+        "wamsStorageAccountName": "[concat(toLower(parameters('clusterName')), 'wamssa')]",
+        "mediaServicesAccountName": "[concat(toLower(parameters('clusterName')), 'wamsmedia')]",
+        "storageAccountType": "Standard_LRS",
+        "storageContainer": "[concat('https://', variables('storageAccountName'),'.blob.core.windows.net/vhds/')]",
+
+        "loadBalancerName": "[concat(parameters('clusterName'), '-lb-', parameters('deploymentSlot'))]",
+        "virtualNetworkName": "[concat(parameters('clusterName'), '-vnet')]",
+        "subnetName": "[concat(parameters('clusterName'), '-subnet')]",
+        "bePoolName": "[concat(parameters('clusterName'), '-bepool-', parameters('deploymentSlot'))]",
+        "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+        "lbID": "[resourceId('Microsoft.Network/loadBalancers',variables('loadBalancerName'))]",
+
+        "vmssAutoscaleSettingNameSuffix": "-autoscale",
+        "vmssName": "[concat(parameters('clusterName'), '-vmss-', parameters('deploymentVersionId'))]",
+        "vmssAutoScaleSettingsName": "[concat(parameters('clusterName'), '-autoscale-', parameters('deploymentVersionId'))]",
+
+        "cmsPublicAddressName": "cmsPublicAddress",
+        "lmsPublicAddressName": "lmsPublicAddress",
+        "previewPublicAddressName": "previewPublicAddress",
+        "lbProbeLMSName": "tcpProbeLMS",
+        "lbProbeCMSName": "tcpProbeCMS",
+        "lbProbePreviewName": "tcpProbePreview",
+        "lbProbeLMSSSLName": "[concat(variables('lbProbeLMSName'),'SSL')]",
+        "lbProbeCMSSSLName": "[concat(variables('lbProbeCMSName'),'SSL')]",
+        "lbProbePreviewSSLName": "[concat(variables('lbProbePreviewName'),'SSL')]",
+
         "keyVaultEnabledForDeployment": true,
         "keyVaultEnabledForTemplateDeployment": true,
         "keyVaultEnabledForVolumeEncryption": true,
         "keyVaultTenantId": "[subscription().subscriptionId]",
-
-        "apiSettings": {
-            "apiVersion": "[variables('apiVersion')]",
-            "storageApiVersion": "[variables('storageApiVersion')]",
-            "virtualMachineApiVersion": "[variables('virtualMachineApiVersion')]",
-            "virtualMachineExtensionsApiVersion": "[variables('virtualMachineExtensionsApiVersion')]",
-            "networkApiVersion": "[variables('networkApiVersion')]",
-            "computeApiVersion": "[variables('computeApiVersion')]",
-            "insightsApiVersion": "[variables('insightsApiVersion')]",
-            "keyVaultApiversion": "[variables('keyVaultApiversion')]",
-            "trafficManagerApiversion": "[variables('trafficManagerApiversion')]",
-            "mediaServicesApiVersion": "[variables('mediaServicesApiVersion')]"
-        },
-        "keyVaultSettings": {
-            "enabledForDeployment": "[variables('keyVaultEnabledForDeployment')]",
-            "enabledForTemplateDeployment": "[variables('keyVaultEnabledForTemplateDeployment')]",
-            "enabledForVolumeEncryption": "[variables('keyVaultEnabledForVolumeEncryption')]",
-            "tenantId": "[subscription().tenantId]",
-            "accessAccount": "[parameters('keyVaultMasterAccountId')]",
-            "tenantKeyAccessPermission": "[parameters('keyVaultMasterAccountKeyAccessPermission')]",
-            "tenantSecretAccessPermission": "[parameters('keyVaultMasterAccountSecretAccessPermission')]",
-            "sku": "[parameters('keyVaultSku')]"
-        },
 
         "networkSettings": {
             "virtualNetworkName": "[variables('virtualNetworkName')]",
@@ -705,16 +712,9 @@
             }
         },
 
-        "sharedTemplateUrl": "[concat(variables('templateBaseUrl'), 'shared-resources.json')]",
-
-        "diagnosticStorageAccountName": "[concat(toLower(parameters('clusterName')), 'diagnostics')]",
-        "storageAccountName": "[concat(toLower(parameters('clusterName')), 'vhdsa')]",
-        "secureGenericStorageAccountName": "[concat(toLower(parameters('clusterName')), 'securesa')]",
-        "videoUploadsStorageAccountName": "[concat(toLower(parameters('clusterName')), 'videosa')]",
-        "wamsStorageAccountName": "[concat(toLower(parameters('clusterName')), 'wamssa')]",
-        "mediaServicesAccountName": "[concat(toLower(parameters('clusterName')), 'wamsmedia')]",
-        "storageAccountType": "Standard_LRS",
-        "storageContainer": "[concat('https://', variables('storageAccountName'),'.blob.core.windows.net/vhds/')]",
+        "supportedOSName": "ubuntu",
+        "supportedOSImagePublisher": "Canonical",
+        "supportedOSImageOffer": "UbuntuServer",
 
         "storageSettings": {
             "storageContainer": "[variables('storageContainer')]",
@@ -726,8 +726,51 @@
             "videoUploadsStorageAccountName": "[variables('videoUploadsStorageAccountName')]",
             "wamsStorageAccountName": "[variables('wamsStorageAccountName')]",
             "mediaServicesAccountName": "[variables('mediaServicesAccountName')]"
-        }
+        },
+        "apiSettings": {
+            "apiVersion": "[variables('apiVersion')]",
+            "storageApiVersion": "[variables('storageApiVersion')]",
+            "virtualMachineApiVersion": "[variables('virtualMachineApiVersion')]",
+            "availabilitySetApiVersion": "[variables('availabilitySetApiVersion')]",
+            "virtualMachineExtensionsApiVersion": "[variables('virtualMachineExtensionsApiVersion')]",
+            "networkApiVersion": "[variables('networkApiVersion')]",
+            "computeApiVersion": "[variables('computeApiVersion')]",
+            "insightsApiVersion": "[variables('insightsApiVersion')]",
+            "keyVaultApiversion": "[variables('keyVaultApiversion')]",
+            "trafficManagerApiversion": "[variables('trafficManagerApiversion')]",
+            "mediaServicesApiVersion": "[variables('mediaServicesApiVersion')]"
+        },
+        "keyVaultSettings": {
+            "enabledForDeployment": "[variables('keyVaultEnabledForDeployment')]",
+            "enabledForTemplateDeployment": "[variables('keyVaultEnabledForTemplateDeployment')]",
+            "enabledForVolumeEncryption": "[variables('keyVaultEnabledForVolumeEncryption')]",
+            "tenantId": "[subscription().tenantId]",
+            "accessAccount": "[parameters('keyVaultMasterAccountId')]",
+            "tenantKeyAccessPermission": "[parameters('keyVaultMasterAccountKeyAccessPermission')]",
+            "tenantSecretAccessPermission": "[parameters('keyVaultMasterAccountSecretAccessPermission')]",
+            "sku": "[parameters('keyVaultSku')]"
+        },
 
+        "azureSharedScriptUrl": "[concat('https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/shared_scripts/', variables('supportedOSName'), '/')]",
+        "templateBaseUrl": "[concat('https://raw.githubusercontent.com/',parameters('oxaToolsGithubAccountName'), '/', parameters('oxaToolsGithubProjectName'), '/', parameters('oxaToolsGithubBranch'), '/', parameters('armTemplateRelativePath'), '/')]",
+        "clusterCustomInstallerScriptFullPath": "[concat( variables('templateBaseUrl'), parameters('customInstallerLaunchScript') )]",
+        "customInstallerOxaToolsGitHubRepositoryParameters": "[concat(' --oxatools-public-github-accountname ', parameters('oxaToolsGithubAccountName'), ' --oxatools-public-github-projectname ', parameters('oxaToolsGithubProjectName'), ' --oxatools-public-github-projectbranch ', parameters('oxaToolsGithubBranch') )]",
+        "customInstallerEdxConfigurationGitHubRepositoryParameters": "[concat(' --edxconfiguration-public-github-accountname ', parameters('edxConfigurationGithubAccountName'), ' --edxconfiguration-public-github-projectname ', parameters('edxConfigurationGithubProjectName'), ' --edxconfiguration-public-github-projectbranch ', parameters('edxConfigurationGithubBranch') )]",
+        "customInstallerEdxPlatformGitHubRepositoryParameters": "[concat(' --edxplatform-public-github-accountname ', parameters('edxPlatformGithubAccountName'), ' --edxplatform-public-github-projectname ', parameters('edxPlatformGithubProjectName'), ' --edxplatform-public-github-projectbranch ', parameters('edxPlatformGithubBranch') )]",
+        "customInstallerEdxThemeGitHubRepositoryParameters": "[concat(' --edxtheme-public-github-accountname ', parameters('edxThemeGithubAccountName'), ' --edxtheme-public-github-projectname ', parameters('edxThemeGithubProjectName'), ' --edxtheme-public-github-projectbranch ', parameters('edxThemeGithubBranch') )]",
+        "customInstallerAnsibleGitHubRepositoryParameters": "[concat(' --ansible-public-github-accountname ', parameters('ansibleGithubAccountName'), ' --ansible-public-github-projectname ', parameters('ansibleGithubProjectName'), ' --ansible-public-github-projectbranch ', parameters('ansibleGithubBranch') )]",
+        "customInstallerMiscRepositoryVersionParameters": "[concat(' --edxversion ', parameters('edxVersion'), ' --forumversion ', parameters('edxForumVersion'), ' --edxtheme-public-github-projectbranch ', parameters('edxThemeGithubBranch') )]",
+        "customInstallerKeyVaultParameters": "[concat(' --keyvault-name ', concat(parameters('clusterName'), '-kv'), ' --aad-webclient-id ', parameters('aadWebClientId'), ' --aad-webclient-appkey ', parameters('aadWebClientAppKey'), ' --aad-tenant-id ', parameters('aadTenantId'), ' --azure-subscription-id ', subscription().subscriptionId)]",
+        "customInstallerOutputRedirect": " >> /var/log/bootstrap.csx.log 2>&1",
+        "smtpParameters": "[concat(' --smtp-server ', parameters('smtpServer'), ' --smtp-server-port ', parameters('smtpServerPort'), ' --smtp-auth-user ', parameters('smtpAuthenticationUser'), ' --smtp-auth-user-password ', parameters('smtpAuthenticationUserPassword'), '  --cluster-admin-email ', parameters('clusterAdmininistratorEmailAddress'))]",
+
+        "secureGenericStorageAccountId": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().name,'/providers/','Microsoft.Storage/storageAccounts/', variables('secureGenericStorageAccountName'))]",
+        "secureGenericStorageAccountKey": "PLACEHOLDER_KEY",
+        "backupParameters": "[concat(' --storage-account-key ', variables('secureGenericStorageAccountKey'),' --storage-account-name ', variables('secureGenericStorageAccountName'), ' --mongo-backup-frequency \"', replace(parameters('mongoBackupFrequency'), ' ', '_'), '\" --mysql-backup-frequency \"', replace(parameters('mysqlBackupFrequency'), ' ', '_'), '\" --mongo-backup-retention-days ', parameters('mongoBackupRetentionDays'), ' --mysql-backup-retention-days ', parameters('mysqlBackupRetentionDays'))]",
+        "customInstallerCommand": "[concat('bash ', parameters('customInstallerLaunchScript'),' -i ', parameters('customInstallerMainScriptRelativePath'), ' -c ', parameters('cloud'), ' -m ', parameters('clusterName'), ' -u ', parameters('adminUsername'), ' --cluster-name ', parameters('clusterName'), variables('customInstallerKeyVaultParameters'), variables('customInstallerOxaToolsGitHubRepositoryParameters'), variables('customInstallerEdxConfigurationGitHubRepositoryParameters'), variables('smtpParameters'), variables('customInstallerEdxPlatformGitHubRepositoryParameters'), variables('customInstallerEdxThemeGitHubRepositoryParameters'), variables('customInstallerMiscRepositoryVersionParameters'), variables('customInstallerAnsibleGitHubRepositoryParameters'), variables('backupParameters'), variables('customInstallerOutputRedirect'))]",
+
+        "sharedTemplateUrl": "[concat(variables('templateBaseUrl'), 'shared-resources.json')]",
+        "keyvaultTemplateUrl": "[concat(variables('templateBaseUrl'), 'node-keyvault.json')]",
     },
     "resources": [
         {
