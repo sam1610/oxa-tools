@@ -782,7 +782,7 @@ EOF
 
     # create the cron job
     cron_installer_script="${backup_script}.${databaseType}"
-    lock_file="${backup_script}.lock"
+    lock_file="${cron_installer_script}.lock"
     install_command="sudo flock -n ${lock_file} bash ${backup_script} -s ${backup_configuration} >> ${backup_log} 2>&1"
     echo $install_command > $cron_installer_script
 
