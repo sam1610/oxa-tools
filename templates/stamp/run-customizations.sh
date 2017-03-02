@@ -109,12 +109,12 @@ help()
     echo "        --smtp-auth-user User name for authenticating against the SMTP server used for relaying deployment and other system notifications"
     echo "        --smtp-auth-user-password Password for authenticating against the SMTP server used for relaying deployment and other system notifications"
     echo "        --cluster-admin-email Email address of the administrator where system and other notifications will be sent"
-    echo "        --storageAccountName Name of the storage account used in backups"
-    echo "        --storageAccountKey Key for the storage account used in backups"
-    echo "        --mongoBackupFrequency Cron frequency for running a full backup of the mysql database. The expected format is parameter|value as supported by Ansible."
-    echo "        --mysqlBackupFrequency Cron frequency for running a full backup of the mysql database. The expected format is parameter|value as supported by Ansible."
-    echo "        --mongoBackupRetentionDays Number of days to keep old Mongo database backups. Backups older than this number of days will be deleted"
-    echo "        --mysqlBackupRetentionDays Number of days to keep old Mysql database backups. Backups older than this number of days will be deleted"
+    echo "        --storage-account-name Name of the storage account used in backups"
+    echo "        --storage-account-key Key for the storage account used in backups"
+    echo "        --mongo-backup-frequency Cron frequency for running a full backup of the mysql database. The expected format is parameter|value as supported by Ansible."
+    echo "        --mysql-backup-frequency Cron frequency for running a full backup of the mysql database. The expected format is parameter|value as supported by Ansible."
+    echo "        --mongo-backup-retention-days Number of days to keep old Mongo database backups. Backups older than this number of days will be deleted"
+    echo "        --mysql-backup-retention-days Number of days to keep old Mysql database backups. Backups older than this number of days will be deleted"
 }
 
 # Parse script parameters
@@ -244,6 +244,24 @@ parse_args()
                 ;;
             --cron)
                 CRON_MODE=1
+                ;;
+            --storage-account-name)
+                BACKUP_STORAGEACCOUNT_NAME="$2"
+                ;;
+             --storage-account-key)
+                BACKUP_STORAGEACCOUNT_KEY="$2"
+                ;;
+              --mongo-backup-frequency)
+                MONGO_BACKUP_FREQUENCY="$2"
+                ;;
+              --mysql-backup-frequency)
+                MYSQL_BACKUP_FREQUENCY="$2"
+                ;;
+              --mongo-backup-retention-days)
+                MONGO_BACKUP_RETENTIONDAYS="$2"
+                ;;
+              )
+                MYSQL_BACKUP_RETENTIONDAYS="$2"
                 ;;
             -h|--help)  # Helpful hints
                 help
