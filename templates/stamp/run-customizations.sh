@@ -252,10 +252,12 @@ parse_args()
                 BACKUP_STORAGEACCOUNT_KEY="$2"
                 ;;
               --mongo-backup-frequency)
-                MONGO_BACKUP_FREQUENCY="$2"
+                MONGO_BACKUP_FREQUENCY="${2//_/ }"
+                echo "Option '${1}' reset to '$MONGO_BACKUP_FREQUENCY'"
                 ;;
               --mysql-backup-frequency)
-                MYSQL_BACKUP_FREQUENCY="$2"
+                MYSQL_BACKUP_FREQUENCY="${2//_/ }"
+                echo "Option '${1}' reset to '$MYSQL_BACKUP_FREQUENCY'"
                 ;;
               --mongo-backup-retention-days)
                 MONGO_BACKUP_RETENTIONDAYS="$2"
