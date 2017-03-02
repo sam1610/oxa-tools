@@ -878,29 +878,6 @@
     },
     "resources": [
         {
-            "name": "shared-resources",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('apiVersion')]",
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('sharedTemplateUrl')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "networkSettings": {
-                        "value": "[variables('networkSettings')]"
-                    },
-                    "apiSettings": {
-                        "value": "[variables('apiSettings')]"
-                    },
-                    "storageSettings": {
-                        "value": "[variables('storageSettings')]"
-                    }
-                }
-            }
-        },
-        {
             "name": "jumpbox",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('apiVersion')]",
@@ -934,7 +911,7 @@
                             "vmScripts": "[variables('jumpBoxInstallerSettings').scriptsToDownload]",
                             "customInstallerCommandToExecute": "[variables('jumpBoxInstallerSettings').customInstallerCommand]",
                             "storageKeyPlaceholder": "[variables('secureGenericStorageAccountKey')]",
-                            "secureGenericStorageAccountId": "[variables('secureGenericStorageAccountId')]"
+                            "secureGenericStorageAccountKey": "[listKeys(variables('secureGenericStorageAccountId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]"
                         }
                     }
                 }

@@ -562,7 +562,29 @@
             "sku": "[parameters('keyVaultSku')]"
         },
         "networkSettings": {
-            "clusterKeyVaultName": "[concat(parameters('clusterName'), '-kv')]",
+            "clusterKeyVaultName": "[concat(parameters('clusterName'), '-kv')]"
+        },
+        "sharedTemplateUrl": "[concat(variables('templateBaseUrl'), 'shared-resources.json')]",
+
+        "diagnosticStorageAccountName": "[concat(toLower(parameters('clusterName')), 'diagnostics')]",
+        "storageAccountName": "[concat(toLower(parameters('clusterName')), 'vhdsa')]",
+        "secureGenericStorageAccountName": "[concat(toLower(parameters('clusterName')), 'securesa')]",
+        "videoUploadsStorageAccountName": "[concat(toLower(parameters('clusterName')), 'videosa')]",
+        "wamsStorageAccountName": "[concat(toLower(parameters('clusterName')), 'wamssa')]",
+        "mediaServicesAccountName": "[concat(toLower(parameters('clusterName')), 'wamsmedia')]",
+        "storageAccountType": "Standard_LRS",
+        "storageContainer": "[concat('https://', variables('storageAccountName'),'.blob.core.windows.net/vhds/')]",
+
+        "storageSettings": {
+            "storageContainer": "[variables('storageContainer')]",
+            "storageContainerName": "vhds",
+            "storageAccountType": "[variables('storageAccountType')]",
+            "storageAccountName": "[variables('storageAccountName')]",
+            "diagnosticStorageAccountName": "[variables('diagnosticStorageAccountName')]",
+            "secureGenericStorageAccountName": "[variables('secureGenericStorageAccountName')]",
+            "videoUploadsStorageAccountName": "[variables('videoUploadsStorageAccountName')]",
+            "wamsStorageAccountName": "[variables('wamsStorageAccountName')]",
+            "mediaServicesAccountName": "[variables('mediaServicesAccountName')]"
         }
 
     },
@@ -586,6 +608,29 @@
                     },
                     "keyVaultSettings": {
                         "value": "[variables('keyVaultSettings')]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "shared-resources",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('apiVersion')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('sharedTemplateUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "networkSettings": {
+                        "value": "[variables('networkSettings')]"
+                    },
+                    "apiSettings": {
+                        "value": "[variables('apiSettings')]"
+                    },
+                    "storageSettings": {
+                        "value": "[variables('storageSettings')]"
                     }
                 }
             }

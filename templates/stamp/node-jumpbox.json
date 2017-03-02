@@ -35,15 +35,6 @@
             }
         }
     },
-
-    "variables": {
-        "storageAccount": {
-            "value": {
-                "secureGenericStorageAccountKey": "[listKeys(parameters('customSettings').secureGenericStorageAccountId, providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]"
-            }
-        }
-    },
-
     "resources": [
         {
             "name": "[parameters('networkSettings').jbNetworkSecurityGroupName]",
