@@ -331,6 +331,11 @@ then
     EDX_PLATFORM_GITHUB_PARAMS="--edxplatform-public-github-accountname \"${EDX_PLATFORM_PUBLIC_GITHUB_ACCOUNTNAME}\" --edxplatform-public-github-projectname \"${EDX_PLATFORM_PUBLIC_GITHUB_PROJECTNAME}\" --edxplatform-public-github-projectbranch \"${EDX_PLATFORM_PUBLIC_GITHUB_PROJECTBRANCH}\""
     EDX_THEME_GITHUB_PARAMS="--edxtheme-public-github-accountname \"${EDX_THEME_PUBLIC_GITHUB_ACCOUNTNAME}\" --edxtheme-public-github-projectname \"${EDX_THEME_PUBLIC_GITHUB_PROJECTNAME}\" --edxtheme-public-github-projectbranch \"${EDX_THEME_PUBLIC_GITHUB_PROJECTBRANCH}\""
     ANSIBLE_GITHUB_PARAMS="--ansible-public-github-accountname \"${ANSIBLE_PUBLIC_GITHUB_ACCOUNTNAME}\" --ansible-public-github-projectname \"${ANSIBLE_PUBLIC_GITHUB_PROJECTNAME}\" --ansible-public-github-projectbranch \"${ANSIBLE_PUBLIC_GITHUB_PROJECTBRANCH}\""
+
+    # strip out the spaces for passing it along
+    MONGO_BACKUP_FREQUENCY="${MONGO_BACKUP_FREQUENCY// /_}"
+    MYSQL_BACKUP_FREQUENCY="${MYSQL_BACKUP_FREQUENCY// /_}"
+
     BACKUP_PARAMS="--storage-account-name \"${BACKUP_STORAGEACCOUNT_NAME}\" --storage-account-key \"${BACKUP_STORAGEACCOUNT_KEY}\" --mongo-backup-frequency \"${MONGO_BACKUP_FREQUENCY}\" --mysql-backup-frequency \"${MYSQL_BACKUP_FREQUENCY}\" --mongo-backup-retention-days \"${MONGO_BACKUP_RETENTIONDAYS}\" --mysql-backup-retention-days \"${MYSQL_BACKUP_RETENTIONDAYS}\""
 
     # create the cron job & exit
