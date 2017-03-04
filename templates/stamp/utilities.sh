@@ -9,6 +9,7 @@ ERROR_CRONTAB_FAILED=4101
 ERROR_GITINSTALL_FAILED=5101
 ERROR_MONGOCLIENTINSTALL_FAILED=5201
 ERROR_MYSQLCLIENTINSTALL_FAILED=5301
+ERROR_MYSQLUTILITIESINSTALL_FAILED=5302
 ERROR_POWERSHELLINSTALL_FAILED=5401
 ERROR_HYDRATECONFIG_FAILED=5410
 ERROR_NODEINSTALL_FAILED=6101
@@ -246,6 +247,26 @@ install-mysql-dump()
     fi
 
     log "Mysql dump installed"
+}
+
+#############################################################################
+# Install Mysql Utilities
+#############################################################################
+
+install-mysql-utilities()
+{
+    if type mysqlfailover >/dev/null 2>&1; then
+        log "Mysql Utilities is already installed"
+    else
+        log "Updating Repository"
+        apt-get update -y -qq
+
+        log "Installing Mysql Utilities"
+        apt-get install -y mysql-utilities
+        exit_on_error "Failed to install the Mysql utilities on ${HOSTNAME} !" $ERROR_MYSQLUTILITIESINSTALL_FAILED
+    fi
+
+    log "Mysql client installed"
 }
 
 #############################################################################
@@ -761,7 +782,7 @@ DATABASE_USER={DATABASE_USER}
 DATABASE_PASSWORD={DATABASE_PASSWORD}
 TEMP_DATABASE_USER={TEMP_DATABASE_USER}
 TEMP_DATABASE_PASSWORD={TEMP_DATABASE_PASSWORD}
-DATABASE_TYPE={databaseType}
+DATABASE_TYPE={DATABASE_TYPE}
 EOF
 
     # replace the place holders (using # since the repo path will have forward slashes)
@@ -782,7 +803,8 @@ EOF
 
     # create the cron job
     cron_installer_script="${backup_script}.${databaseType}"
-    install_command="sudo bash ${backup_script} ${backup_configuration} >> $backup_log 2>&1"
+    lock_file="${cron_installer_script}.lock"
+    install_command="sudo flock -n ${lock_file} bash ${backup_script} -s ${backup_configuration} >> ${backup_log} 2>&1"
     echo $install_command > $cron_installer_script
 
     # secure the file and make it executable
@@ -800,4 +822,20 @@ EOF
     # setup the cron job
     log "Completed setting up database backup for '${databaseType}' database(s)"
     # exit 0;
+}
+
+#############################################################################
+# Set server Time Zone
+#############################################################################
+
+set_timezone()
+{
+    timezone="America/Los_Angeles"
+
+    if [ "$#" -ge 1 ]; then
+        $timezone="${1}"
+    fi
+
+    log "Setting the timezone for '${HOSTNAME}' to '${timezone}'"
+    timedatectl set-timezone $timezone
 }

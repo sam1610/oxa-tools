@@ -65,11 +65,10 @@ PRIMARY_LOG="/var/log/bootstrap.log"
 # Database Backup Parameters
 BACKUP_STORAGEACCOUNT_NAME=""
 BACKUP_STORAGEACCOUNT_KEY=""
-MONGO_BACKUP_FREQUENCY="0 0 * * * ",  # backup once daily
+MONGO_BACKUP_FREQUENCY="0 0 * * *"  # backup once daily
 MYSQL_BACKUP_FREQUENCY="0 */4 * * *" # backup every 4 hours
 MONGO_BACKUP_RETENTIONDAYS="7"
 MYSQL_BACKUP_RETENTIONDAYS="7"
-DATABASE_BACKUP_LOG="/var/log/db_backup.log"
 
 help()
 {
@@ -109,15 +108,16 @@ help()
     echo "        --smtp-auth-user User name for authenticating against the SMTP server used for relaying deployment and other system notifications"
     echo "        --smtp-auth-user-password Password for authenticating against the SMTP server used for relaying deployment and other system notifications"
     echo "        --cluster-admin-email Email address of the administrator where system and other notifications will be sent"
-    echo "        --storageAccountName Name of the storage account used in backups"
-    echo "        --storageAccountKey Key for the storage account used in backups"
-    echo "        --mongoBackupFrequency Cron frequency for running a full backup of the mysql database. The expected format is parameter|value as supported by Ansible."
-    echo "        --mysqlBackupFrequency Cron frequency for running a full backup of the mysql database. The expected format is parameter|value as supported by Ansible."
-    echo "        --mongoBackupRetentionDays Number of days to keep old Mongo database backups. Backups older than this number of days will be deleted"
-    echo "        --mysqlBackupRetentionDays Number of days to keep old Mysql database backups. Backups older than this number of days will be deleted"
+    echo "        --storage-account-name Name of the storage account used in backups"
+    echo "        --storage-account-key Key for the storage account used in backups"
+    echo "        --mongo-backup-frequency Cron frequency for running a full backup of the mysql database. The expected format is parameter|value as supported by Ansible."
+    echo "        --mysql-backup-frequency Cron frequency for running a full backup of the mysql database. The expected format is parameter|value as supported by Ansible."
+    echo "        --mongo-backup-retention-days Number of days to keep old Mongo database backups. Backups older than this number of days will be deleted"
+    echo "        --mysql-backup-retention-days Number of days to keep old Mysql database backups. Backups older than this number of days will be deleted"
 }
 
 # Parse script parameters
+# When adding parameters, make sure to pass the same variables during the cron mode setup
 parse_args()
 {
     while [[ "$#" -gt 0 ]]
@@ -245,6 +245,26 @@ parse_args()
             --cron)
                 CRON_MODE=1
                 ;;
+            --storage-account-name)
+                BACKUP_STORAGEACCOUNT_NAME="$2"
+                ;;
+             --storage-account-key)
+                BACKUP_STORAGEACCOUNT_KEY="$2"
+                ;;
+              --mongo-backup-frequency)
+                MONGO_BACKUP_FREQUENCY="${2//_/ }"
+                echo "Option '${1}' reset to '$MONGO_BACKUP_FREQUENCY'"
+                ;;
+              --mysql-backup-frequency)
+                MYSQL_BACKUP_FREQUENCY="${2//_/ }"
+                echo "Option '${1}' reset to '$MYSQL_BACKUP_FREQUENCY'"
+                ;;
+              --mongo-backup-retention-days)
+                MONGO_BACKUP_RETENTIONDAYS="$2"
+                ;;
+              --mysql-backup-retention-days)
+                MYSQL_BACKUP_RETENTIONDAYS="$2"
+                ;;
             -h|--help)  # Helpful hints
                 help
                 exit 2
@@ -298,7 +318,7 @@ then
     exit 3
 fi
 
-# to support resiliency, we need to enable retries. Towards that end, this script will support 2 modes: Cron (background execution) or Non-Cron (CSX/direct execution)
+# to support resiliency, we need to enable retries. Towards that end, this script will support 2 modes: Cron (background execution) or Non-Cron (Custom Script Extension-CSX/direct execution)
 CRON_INSTALLER_SCRIPT="$CURRENT_PATH/background-run-customization.sh"
 
 if [ "$CRON_MODE" == "0" ];
@@ -306,14 +326,20 @@ then
     log "Setting up cron job for executing customization from '${HOSTNAME}' for the OXA Stamp"
 
     # setup the repo parameters individually
-    OXA_TOOLS_GITHUB_PARAMS="--oxatools-public-github-accountname $OXA_TOOLS_PUBLIC_GITHUB_ACCOUNTNAME --oxatools-public-github-projectname $OXA_TOOLS_PUBLIC_GITHUB_PROJECTNAME --oxatools-public-github-projectbranch $OXA_TOOLS_PUBLIC_GITHUB_PROJECTBRANCH"
-    EDX_CONFIGURATION_GITHUB_PARAMS="--edxconfiguration-public-github-accountname $EDX_CONFIGURATION_PUBLIC_GITHUB_ACCOUNTNAME --edxconfiguration-public-github-projectname $EDX_CONFIGURATION_PUBLIC_GITHUB_PROJECTNAME --edxconfiguration-public-github-projectbranch $EDX_CONFIGURATION_PUBLIC_GITHUB_PROJECTBRANCH"
-    EDX_PLATFORM_GITHUB_PARAMS="--edxplatform-public-github-accountname $EDX_PLATFORM_PUBLIC_GITHUB_ACCOUNTNAME --edxplatform-public-github-projectname $EDX_PLATFORM_PUBLIC_GITHUB_PROJECTNAME --edxplatform-public-github-projectbranch $EDX_PLATFORM_PUBLIC_GITHUB_PROJECTBRANCH"
-    EDX_THEME_GITHUB_PARAMS="--edxtheme-public-github-accountname $EDX_THEME_PUBLIC_GITHUB_ACCOUNTNAME --edxtheme-public-github-projectname $EDX_THEME_PUBLIC_GITHUB_PROJECTNAME --edxtheme-public-github-projectbranch $EDX_THEME_PUBLIC_GITHUB_PROJECTBRANCH"
-    ANSIBLE_GITHUB_PARAMS="--ansible-public-github-accountname $ANSIBLE_PUBLIC_GITHUB_ACCOUNTNAME --ansible-public-github-projectname $ANSIBLE_PUBLIC_GITHUB_PROJECTNAME --ansible-public-github-projectbranch $ANSIBLE_PUBLIC_GITHUB_PROJECTBRANCH"
+    OXA_TOOLS_GITHUB_PARAMS="--oxatools-public-github-accountname \"${OXA_TOOLS_PUBLIC_GITHUB_ACCOUNTNAME}\" --oxatools-public-github-projectname \"${OXA_TOOLS_PUBLIC_GITHUB_PROJECTNAME}\" --oxatools-public-github-projectbranch \"${OXA_TOOLS_PUBLIC_GITHUB_PROJECTBRANCH}\""
+    EDX_CONFIGURATION_GITHUB_PARAMS="--edxconfiguration-public-github-accountname \"${EDX_CONFIGURATION_PUBLIC_GITHUB_ACCOUNTNAME}\" --edxconfiguration-public-github-projectname \"${EDX_CONFIGURATION_PUBLIC_GITHUB_PROJECTNAME}\" --edxconfiguration-public-github-projectbranch \"${EDX_CONFIGURATION_PUBLIC_GITHUB_PROJECTBRANCH}\""
+    EDX_PLATFORM_GITHUB_PARAMS="--edxplatform-public-github-accountname \"${EDX_PLATFORM_PUBLIC_GITHUB_ACCOUNTNAME}\" --edxplatform-public-github-projectname \"${EDX_PLATFORM_PUBLIC_GITHUB_PROJECTNAME}\" --edxplatform-public-github-projectbranch \"${EDX_PLATFORM_PUBLIC_GITHUB_PROJECTBRANCH}\""
+    EDX_THEME_GITHUB_PARAMS="--edxtheme-public-github-accountname \"${EDX_THEME_PUBLIC_GITHUB_ACCOUNTNAME}\" --edxtheme-public-github-projectname \"${EDX_THEME_PUBLIC_GITHUB_PROJECTNAME}\" --edxtheme-public-github-projectbranch \"${EDX_THEME_PUBLIC_GITHUB_PROJECTBRANCH}\""
+    ANSIBLE_GITHUB_PARAMS="--ansible-public-github-accountname \"${ANSIBLE_PUBLIC_GITHUB_ACCOUNTNAME}\" --ansible-public-github-projectname \"${ANSIBLE_PUBLIC_GITHUB_PROJECTNAME}\" --ansible-public-github-projectbranch \"${ANSIBLE_PUBLIC_GITHUB_PROJECTBRANCH}\""
+
+    # strip out the spaces for passing it along
+    MONGO_BACKUP_FREQUENCY="${MONGO_BACKUP_FREQUENCY// /_}"
+    MYSQL_BACKUP_FREQUENCY="${MYSQL_BACKUP_FREQUENCY// /_}"
+
+    BACKUP_PARAMS="--storage-account-name \"${BACKUP_STORAGEACCOUNT_NAME}\" --storage-account-key \"${BACKUP_STORAGEACCOUNT_KEY}\" --mongo-backup-frequency \"${MONGO_BACKUP_FREQUENCY}\" --mysql-backup-frequency \"${MYSQL_BACKUP_FREQUENCY}\" --mongo-backup-retention-days \"${MONGO_BACKUP_RETENTIONDAYS}\" --mysql-backup-retention-days \"${MYSQL_BACKUP_RETENTIONDAYS}\""
 
     # create the cron job & exit
-    INSTALL_COMMAND="sudo flock -n /var/log/bootstrap-run-customization.lock bash $CURRENT_PATH/run-customizations.sh -c $CLOUDNAME -u $OS_ADMIN_USERNAME -i $CUSTOM_INSTALLER_RELATIVEPATH -m $MONITORING_CLUSTER_NAME -s $BOOTSTRAP_PHASE -u $OS_ADMIN_USERNAME --monitoring-cluster $MONITORING_CLUSTER_NAME --crontab-interval $CRONTAB_INTERVAL_MINUTES --keyvault-name $KEYVAULT_NAME --aad-webclient-id $AAD_WEBCLIENT_ID --aad-webclient-appkey $AAD_WEBCLIENT_APPKEY --aad-tenant-id $AAD_TENANT_ID --azure-subscription-id $AZURE_SUBSCRIPTION_ID --smtp-server $SMTP_SERVER --smtp-server-port $SMTP_SERVER_PORT --smtp-auth-user $SMTP_AUTH_USER --smtp-auth-user-password $SMTP_AUTH_USER_PASSWORD --cluster-admin-email $CLUSTER_ADMIN_EMAIL --cluster-name $CLUSTER_NAME ${OXA_TOOLS_GITHUB_PARAMS} ${EDX_CONFIGURATION_GITHUB_PARAMS} ${EDX_PLATFORM_GITHUB_PARAMS} ${EDX_THEME_GITHUB_PARAMS} ${ANSIBLE_GITHUB_PARAMS} --edxversion $EDX_VERSION --forumversion $FORUM_VERSION --cron >> $SECONDARY_LOG 2>&1"
+    INSTALL_COMMAND="sudo flock -n /var/log/bootstrap-run-customization.lock bash $CURRENT_PATH/run-customizations.sh -c $CLOUDNAME -u $OS_ADMIN_USERNAME -i $CUSTOM_INSTALLER_RELATIVEPATH -m $MONITORING_CLUSTER_NAME -s $BOOTSTRAP_PHASE -u $OS_ADMIN_USERNAME --monitoring-cluster $MONITORING_CLUSTER_NAME --crontab-interval $CRONTAB_INTERVAL_MINUTES --keyvault-name $KEYVAULT_NAME --aad-webclient-id $AAD_WEBCLIENT_ID --aad-webclient-appkey $AAD_WEBCLIENT_APPKEY --aad-tenant-id $AAD_TENANT_ID --azure-subscription-id $AZURE_SUBSCRIPTION_ID --smtp-server $SMTP_SERVER --smtp-server-port $SMTP_SERVER_PORT --smtp-auth-user $SMTP_AUTH_USER --smtp-auth-user-password $SMTP_AUTH_USER_PASSWORD --cluster-admin-email $CLUSTER_ADMIN_EMAIL --cluster-name $CLUSTER_NAME ${OXA_TOOLS_GITHUB_PARAMS} ${EDX_CONFIGURATION_GITHUB_PARAMS} ${EDX_PLATFORM_GITHUB_PARAMS} ${EDX_THEME_GITHUB_PARAMS} ${ANSIBLE_GITHUB_PARAMS} ${BACKUP_PARAMS} --edxversion $EDX_VERSION --forumversion $FORUM_VERSION --cron >> $SECONDARY_LOG 2>&1"
     echo $INSTALL_COMMAND > $CRON_INSTALLER_SCRIPT
 
     # Remove the task if it is already setup
@@ -341,6 +367,7 @@ exit_on_error "Configuring the mailer failed"
 # 1. Setup Tools
 install-git
 install-gettext
+set_timezone
 
 if [ "$MACHINE_ROLE" == "jumpbox" ] || [ "$MACHINE_ROLE" == "vmss" ];
 then
@@ -380,23 +407,30 @@ cp $UTILITIES_PATH "${INSTALLER_BASEPATH}"
 # Setup Backups
 #####################################
 
-# setup the configuration file for database backups
-source "${OXA_ENV_PATH}/${DEPLOYMENT_ENV}.sh"
-exit_on_error "Failed sourcing the environment configuration file from keyvault" 1 "${MAIL_SUBJECT} Failed" $CLUSTER_ADMIN_EMAIL $PRIMARY_LOG $SECONDARY_LOG
+if [ "$MACHINE_ROLE" == "jumpbox" ];
+then
+    log "Starting backup configuration on '${HOSTNAME}' as a member in the '${MACHINE_ROLE}' role"
 
-# these are fixed values
-MONGO_REPLICASET_CONNECTIONSTRING="${MONGO_REPLICASET_NAME}/${MYSQL_SERVER_LIST}"
-DATABASE_BACKUP_SCRIPT="${INSTALLER_BASEPATH}\db_backup.sh"
+    # setup the configuration file for database backups
+    source "${OXA_ENV_PATH}/${DEPLOYMENT_ENV}.sh"
+    exit_on_error "Failed sourcing the environment configuration file from keyvault" 1 "${MAIL_SUBJECT} Failed" $CLUSTER_ADMIN_EMAIL $PRIMARY_LOG $SECONDARY_LOG
 
-# setup mysql backup
-DATABASE_TYPE_TO_BACKUP="mysql"
-setup_backup "${INSTALLER_BASEPATH}\backup_configuration_${DATABASE_TYPE_TO_BACKUP}.sh" "${DATABASE_BACKUP_SCRIPT}" "${DATABASE_BACKUP_LOG}" "${BACKUP_STORAGEACCOUNT_NAME}" "${BACKUP_STORAGEACCOUNT_KEY}" "${MYSQL_BACKUP_FREQUENCY}" "${MYSQL_BACKUP_RETENTIONDAYS}" "${MONGO_REPLICASET_CONNECTIONSTRING}" "${MYSQL_SERVER_LIST}" "${DATABASE_TYPE_TO_BACKUP}" "${MYSQL_ADMIN_USER}" "${MYSQL_ADMIN_PASSWORD}" "${MYSQL_TEMP_USER}" "${MYSQL_TEMP_PASSWORD}"
-exit_on_error "Failed setting up the Mysql Database backup" 1 "${MAIL_SUBJECT} Failed" $CLUSTER_ADMIN_EMAIL $PRIMARY_LOG $SECONDARY_LOG
+    # these are fixed values
+    MONGO_REPLICASET_CONNECTIONSTRING="${MONGO_REPLICASET_NAME}/${MONGO_SERVER_LIST}"
+    DATABASE_BACKUP_SCRIPT="${INSTALLER_BASEPATH}/db_backup.sh"
 
-# setup mongo backup
-DATABASE_TYPE_TO_BACKUP="mongo"
-setup_backup "${INSTALLER_BASEPATH}\backup_configuration_${DATABASE_TYPE_TO_BACKUP}.sh" "${DATABASE_BACKUP_SCRIPT}" "${DATABASE_BACKUP_LOG}" "${BACKUP_STORAGEACCOUNT_NAME}" "${BACKUP_STORAGEACCOUNT_KEY}" "${MONGO_BACKUP_FREQUENCY}" "${MONGO_BACKUP_RETENTIONDAYS}" "${MONGO_REPLICASET_CONNECTIONSTRING}" "${MYSQL_SERVER_LIST}" "${DATABASE_TYPE_TO_BACKUP}" "${MONGO_USER}" "${MONGO_PASSWORD}" "${MONGO_USER}" "${MONGO_PASSWORD}"
-exit_on_error "Failed setting up the Mongo Database backup" 1 "${MAIL_SUBJECT} Failed" $CLUSTER_ADMIN_EMAIL $PRIMARY_LOG $SECONDARY_LOG
+    # setup mysql backup
+    DATABASE_TYPE_TO_BACKUP="mysql"
+    DATABASE_BACKUP_LOG="/var/log/db_backup_${DATABASE_TYPE_TO_BACKUP}.log"
+    setup_backup "${INSTALLER_BASEPATH}/backup_configuration_${DATABASE_TYPE_TO_BACKUP}.sh" "${DATABASE_BACKUP_SCRIPT}" "${DATABASE_BACKUP_LOG}" "${BACKUP_STORAGEACCOUNT_NAME}" "${BACKUP_STORAGEACCOUNT_KEY}" "${MYSQL_BACKUP_FREQUENCY}" "${MYSQL_BACKUP_RETENTIONDAYS}" "${MONGO_REPLICASET_CONNECTIONSTRING}" "${MYSQL_SERVER_LIST}" "${DATABASE_TYPE_TO_BACKUP}" "${MYSQL_ADMIN_USER}" "${MYSQL_ADMIN_PASSWORD}" "${MYSQL_TEMP_USER}" "${MYSQL_TEMP_PASSWORD}"
+    exit_on_error "Failed setting up the Mysql Database backup" 1 "${MAIL_SUBJECT} Failed" $CLUSTER_ADMIN_EMAIL $PRIMARY_LOG $SECONDARY_LOG
+
+    # setup mongo backup
+    DATABASE_TYPE_TO_BACKUP="mongo"
+    DATABASE_BACKUP_LOG="/var/log/db_backup_${DATABASE_TYPE_TO_BACKUP}.log"
+    setup_backup "${INSTALLER_BASEPATH}/backup_configuration_${DATABASE_TYPE_TO_BACKUP}.sh" "${DATABASE_BACKUP_SCRIPT}" "${DATABASE_BACKUP_LOG}" "${BACKUP_STORAGEACCOUNT_NAME}" "${BACKUP_STORAGEACCOUNT_KEY}" "${MONGO_BACKUP_FREQUENCY}" "${MONGO_BACKUP_RETENTIONDAYS}" "${MONGO_REPLICASET_CONNECTIONSTRING}" "${MYSQL_SERVER_LIST}" "${DATABASE_TYPE_TO_BACKUP}" "${MONGO_USER}" "${MONGO_PASSWORD}" "${MONGO_USER}" "${MONGO_PASSWORD}"
+    exit_on_error "Failed setting up the Mongo Database backup" 1 "${MAIL_SUBJECT} Failed" $CLUSTER_ADMIN_EMAIL $PRIMARY_LOG $SECONDARY_LOG
+fi
 
 #####################################
 # Launch Installer

@@ -506,14 +506,14 @@
         },
         "mongoBackupRetentionDays": {
             "type": "int",
-            "defaultValue": "30",
+            "defaultValue": 30,
             "metadata": {
                 "description": "Number of days to keep old Mongo database backups. Backups older than this number of days will be deleted."
             }
         },
         "mysqlBackupRetentionDays": {
             "type": "int",
-            "defaultValue": "30",
+            "defaultValue": 30,
             "metadata": {
                 "description": "Number of days to keep old Mysql backups. Backups older than this number of days will be deleted."
             }
@@ -808,9 +808,9 @@
         "smtpParameters": "[concat(' --smtp-server ', parameters('smtpServer'), ' --smtp-server-port ', parameters('smtpServerPort'), ' --smtp-auth-user ', parameters('smtpAuthenticationUser'), ' --smtp-auth-user-password ', parameters('smtpAuthenticationUserPassword'), '  --cluster-admin-email ', parameters('clusterAdmininistratorEmailAddress'))]",
 
         "secureGenericStorageAccountId": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().name,'/providers/','Microsoft.Storage/storageAccounts/', variables('secureGenericStorageAccountName'))]",
-        "secureGenericStorageAccountKey": "[listkeys(resourceId(variables('secureGenericStorageAccountId')), variables('storageApiVersion')).keys[0]]",
-        "backupParameters": "[concat(' --storageAccountKey ', variables('secureGenericStorageAccountKey'),' --storageAccountName ', variables('secureGenericStorageAccountName'), ' --mongoBackupFrequency ', parameters('mongoBackupFrequency'), ' --mysqlBackupFrequency ', parameters('mysqlBackupFrequency'), ' --mongoBackupRetentionDays ', parameters('mongoBackupRetentionDays'), ' --mysqlBackupRetentionDays ', parameters('mysqlBackupRetentionDays'))]",
-        "customInstallerCommand": "[concat('bash ', parameters('customInstallerLaunchScript'),' -i ', parameters('customInstallerMainScriptRelativePath'), ' -c ', parameters('cloud'), ' -m ', parameters('clusterName'), ' -u ', parameters('adminUsername'), ' --cluster-name ', parameters('clusterName'), variables('customInstallerKeyVaultParameters'), variables('customInstallerOxaToolsGitHubRepositoryParameters'), variables('customInstallerEdxConfigurationGitHubRepositoryParameters'), variables('customInstallerOutputRedirect'), variables('smtpParameters'), variables('customInstallerEdxPlatformGitHubRepositoryParameters'), variables('customInstallerEdxThemeGitHubRepositoryParameters'), variables('customInstallerMiscRepositoryVersionParameters'), variables('customInstallerAnsibleGitHubRepositoryParameters'), variables('backupParameters'))]",
+        "secureGenericStorageAccountKey": "PLACEHOLDER_KEY",
+        "backupParameters": "[concat(' --storage-account-key ', variables('secureGenericStorageAccountKey'),' --storage-account-name ', variables('secureGenericStorageAccountName'), ' --mongo-backup-frequency \"', replace(parameters('mongoBackupFrequency'), ' ', '_'), '\" --mysql-backup-frequency \"', replace(parameters('mysqlBackupFrequency'), ' ', '_'), '\" --mongo-backup-retention-days ', parameters('mongoBackupRetentionDays'), ' --mysql-backup-retention-days ', parameters('mysqlBackupRetentionDays'))]",
+        "customInstallerCommand": "[concat('bash ', parameters('customInstallerLaunchScript'),' -i ', parameters('customInstallerMainScriptRelativePath'), ' -c ', parameters('cloud'), ' -m ', parameters('clusterName'), ' -u ', parameters('adminUsername'), ' --cluster-name ', parameters('clusterName'), variables('customInstallerKeyVaultParameters'), variables('customInstallerOxaToolsGitHubRepositoryParameters'), variables('customInstallerEdxConfigurationGitHubRepositoryParameters'), variables('smtpParameters'), variables('customInstallerEdxPlatformGitHubRepositoryParameters'), variables('customInstallerEdxThemeGitHubRepositoryParameters'), variables('customInstallerMiscRepositoryVersionParameters'), variables('customInstallerAnsibleGitHubRepositoryParameters'), variables('backupParameters'), variables('customInstallerOutputRedirect'))]",
 
         "sharedTemplateUrl": "[concat(variables('templateBaseUrl'), 'shared-resources.json')]",
         "jumpboxTemplateUrl": "[concat(variables('templateBaseUrl'), 'node-jumpbox.json')]",
@@ -932,7 +932,9 @@
                     "customSettings": {
                         "value": {
                             "vmScripts": "[variables('jumpBoxInstallerSettings').scriptsToDownload]",
-                            "customInstallerCommandToExecute": "[variables('jumpBoxInstallerSettings').customInstallerCommand]"
+                            "customInstallerCommandToExecute": "[variables('jumpBoxInstallerSettings').customInstallerCommand]",
+                            "storageKeyPlaceholder": "[variables('secureGenericStorageAccountKey')]",
+                            "secureGenericStorageAccountKey": "[listKeys(variables('secureGenericStorageAccountId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]"
                         }
                     }
                 }
