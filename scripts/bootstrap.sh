@@ -375,11 +375,11 @@ update_fullstack() {
   # edx playbooks - fullstack (single VM)
 
   # We've begun experiencing intermittent failures on ficus. Simply
-  # retrying sovles this problem, but we should revisit solve the
+  # retrying mitigates the problem, but we should revisit solve the
   # underlying cause(s) soon.
   # todo:tentatively low to test error. we'll change to 5.
   # todo:we'll eventually move this to a loop utility function that takes command, count, optional description
-  for (( a=1; a<=1; a++ )); do
+  for (( a=1; a<=5; a++ )); do
     log "STARTING attempt number: $a ..."
     $ANSIBLE_PLAYBOOK -i localhost, -c local -e@$OXA_PLAYBOOK_CONFIG vagrant-fullstack.yml
     if [ $? -eq 0 ]; then
@@ -387,9 +387,14 @@ update_fullstack() {
         break
     else
         log "FAILED attempt number: $a "
+
+        # Last loop iteration?
+        if [ $a -eq 5 ]; then
+            log "Execution of edX fullstack playbook failed"
+            exit 1
+        fi
     fi
   done
-  exit_on_error "Execution of edX fullstack playbook failed"
 
   # oxa playbooks - all (single VM)
   $ANSIBLE_PLAYBOOK -i localhost, -c local -e@$OXA_PLAYBOOK_CONFIG $OXA_PLAYBOOK_ARGS $OXA_PLAYBOOK
