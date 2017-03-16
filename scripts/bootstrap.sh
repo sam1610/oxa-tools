@@ -370,6 +370,8 @@ update_scalable_mysql() {
 }
 
 update_fullstack() {
+  install-ssh
+
   # edx playbooks - fullstack (single VM)
   $ANSIBLE_PLAYBOOK -i localhost, -c local -e@$OXA_PLAYBOOK_CONFIG vagrant-fullstack.yml
   exit_on_error "Execution of edX fullstack playbook failed"
@@ -380,6 +382,8 @@ update_fullstack() {
 }
 
 update_devstack() {
+  install-ssh
+
   if ! id -u vagrant > /dev/null 2>&1; then
   # create required vagrant user account to avoid fatal error
     sudo adduser --disabled-password --gecos "" vagrant
