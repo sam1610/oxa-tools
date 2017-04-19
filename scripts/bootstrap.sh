@@ -49,7 +49,7 @@ ANSIBLE_PUBLIC_GITHUB_PROJECTNAME="ansible"
 ANSIBLE_PUBLIC_GITHUB_PROJECTBRANCH="master"
 
 # MISC
-EDX_VERSION="master"
+EDX_VERSION="open-release/ficus.master"
 #FORUM_VERSION="mongoid5-release"
 FORUM_VERSION="open-release/ficus.master"
 
